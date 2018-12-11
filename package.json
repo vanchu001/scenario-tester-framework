@@ -8,8 +8,17 @@
   },
   "author": "skip",
   "license": "ISC",
+  "keywords": [
+    "test",
+    "mocha",
+    "scenario"
+  ],
   "dependencies": {
     "klaw-sync": "^6.0.0",
     "mocha": "^5.0.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vanchu001/scenario-tester-framework.git"
   }
 }

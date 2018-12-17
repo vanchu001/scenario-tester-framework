@@ -1,3 +1,4 @@
+const walk = require('klaw-sync');
 const Tester = require('../');
 
 async function init() {
@@ -11,8 +12,9 @@ async function fini() {
 }
 
 ~(async () => {
+    let scenarios = walk(__dirname + '/scenario', {nodir: true}).map(({path}) => path)
     Tester.start({
-        scenarioFolder      : __dirname + '/scenario', 
+        scenarios,
         defaultExecuter     : require('./executer').Default,
         hook: {
             init            : init,

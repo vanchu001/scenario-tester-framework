@@ -1,4 +1,3 @@
-const walk = require('klaw-sync');
 const Scenario = require('./src/scenario');
 
 module.exports = class {
@@ -10,9 +9,9 @@ module.exports = class {
         return require('./src/constant');
     }
 
-    static async start({scenarioFolder, defaultExecuter, hook:{init, fini}}) {
-        for (let {path: configPath} of walk(scenarioFolder, {nodir: true})) {
-            let {name, launcher, preScenarios, scenes} = require(configPath);
+    static async start({scenarios, defaultExecuter, hook:{init, fini}}) {
+        for (let _ of scenarios) {
+            let {name, launcher, preScenarios, scenes} = require(_);
             let scenario = new Scenario({
                 scenes,
                 launcher,

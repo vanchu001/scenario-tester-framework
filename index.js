@@ -17,15 +17,23 @@ module.exports = class {
                 scenes,
                 launcher,
                 defaultExecuter, 
-                preScenarios,
-                init, 
-                fini
+                preScenarios
             });
 
             describe(name, function() {
+                before(async function() {
+                    this.timeout(30000);
+                    if (init != undefined) await init();
+                })
+
                 it('', async function() {
                     this.timeout(scenario.timeout);
                     await scenario.run();
+                })
+
+                after(async function() {
+                    this.timeout(30000);
+                    if (fini != undefined) await fini();
                 })
             });
         }

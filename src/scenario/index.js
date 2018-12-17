@@ -1,12 +1,10 @@
 const Constant = require('../constant');
 
 const Scenario = class {
-    constructor({scenes, defaultExecuter, preScenarios = undefined, init = undefined, fini = undefined, launcher = undefined, session = undefined}) {
+    constructor({scenes, defaultExecuter, preScenarios = undefined, launcher = undefined, session = undefined}) {
         this._executer = new Map();
         this._scenes = scenes;
         this._preScenarios = preScenarios;
-        this._init = init;
-        this._fini = fini;
         this._defaultExecuter = defaultExecuter;
         this._launcher = launcher;
         this._session = session;
@@ -14,34 +12,34 @@ const Scenario = class {
 
     get timeout() {
         let timeout = 0;
-        // if (this._preScenarios != undefined) {
-        //     for (let preScenario of this._preScenarios([])) {
-        //         let {scene: {preScenarios: subPreScenarios, scenes: subScenes}} = preScenario;
-        //         let {timeout: subTimeout} = new Scenario({
-        //             scenes: subScenes,
-        //             preScenarios: subPreScenarios,
-        //             session: []
-        //         });
-        //         timeout += subTimeout;
-        //     }
-        // }
+        if (this._preScenarios != undefined) {
+            for (let preScenario of this._preScenarios([])) {
+                let {scene: {preScenarios: subPreScenarios, scenes: subScenes}} = preScenario;
+                let {timeout: subTimeout} = new Scenario({
+                    scenes: subScenes,
+                    preScenarios: subPreScenarios,
+                    session: []
+                });
+                timeout += subTimeout;
+            }
+        }
 
-        // if (this._scenes != undefined) {
-        //     for (let _ of this._scenes([])) {
-        //         switch(_.mode) {
-        //             case Constant.Mode.PARALLEL:
-        //                 timeout += _.scenes.reduce((prev, curr) => {
-        //                     prev += this._getSceneTimeout(curr.scene)
-        //                     return prev;
-        //                 }, 0);
-        //                 break;
-        //             case Constant.Mode.SERIAL:
-        //             default:
-        //                 timeout += this._getSceneTimeout(_);
-        //                 break;
-        //         }
-        //     }
-        // }
+        if (this._scenes != undefined) {
+            for (let _ of this._scenes([])) {
+                switch(_.mode) {
+                    case Constant.Mode.PARALLEL:
+                        timeout += _.scenes.reduce((prev, curr) => {
+                            prev += this._getSceneTimeout(curr)
+                            return prev;
+                        }, 0);
+                        break;
+                    case Constant.Mode.SERIAL:
+                    default:
+                        timeout += this._getSceneTimeout(_);
+                        break;
+                }
+            }
+        }
         return timeout;
     }
 
@@ -53,10 +51,7 @@ const Scenario = class {
     async run() {
         let record = new Record()
 
-        //step1. 执行init钩子
-        if (this._init != undefined) await this._init();
-
-        //step2. 创建session
+        //step1. 创建session
         let session = undefined;
         if (this._session != undefined) {
             session = this._session;
@@ -68,13 +63,12 @@ const Scenario = class {
                     session.push(await launcher);
                 }
             }
-            else {
+            else if (this._launcher instanceof Promise) {
                 session = await this._launcher;
             }
         }
 
-
-        //step3. 执行preScenarios
+        //step2. 执行preScenarios
         if (this._preScenarios != undefined) {
             for (let preScenario of this._preScenarios(session)) {
                 let {scene: {preScenarios: subPreScenarios, scenes: subScenes} , session: subSession} = preScenario;
@@ -91,7 +85,7 @@ const Scenario = class {
             }
         }
 
-        //step4. 执行scenes
+        //step3. 执行scenes
         if (this._scenes != undefined) {
             for (let _ of this._scenes(session)) {
                 let result = undefined;
@@ -129,8 +123,6 @@ const Scenario = class {
             }
         }
 
-        if (this._fini != undefined) await this._fini();
-
         return record;
     }
 
@@ -138,10 +130,15 @@ const Scenario = class {
         let requestParams = null;
         if (request != undefined) requestParams = await request((index) => scenarioRecord(index));
 
-        let result = await Promise.race([
-            new Promise((resolve, reject) => setTimeout(() => reject(), timeout)),
-            await (new executer(session)).run(method, requestParams)
-        ]);
+        let result = await new Promise(async (resolve ,reject) => {
+            setTimeout(() => reject(`method ${method} timeout`), timeout);
+            try {
+                return resolve(await (new executer(session)).run(method, requestParams));
+            }
+            catch(error) {
+                return reject(error);
+            }
+        })
 
         return {
             request: requestParams,

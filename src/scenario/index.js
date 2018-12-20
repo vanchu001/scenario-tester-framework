@@ -56,15 +56,13 @@ const Scenario = class {
         if (this._session != undefined) {
             session = this._session;
         }
-        else {
-            if (this._launcher instanceof Array) {
-                session = [];
-                for(let launcher of this._launcher) {
-                    session.push(await launcher);
-                }
+        else if (this._launcher != undefined) {
+            let launcher = this._launcher();
+            if (launcher instanceof Array) {
+                session = await Promise.all(launcher);
             }
-            else if (this._launcher instanceof Promise) {
-                session = await this._launcher;
+            else if (launcher instanceof Promise) {
+                session = await launcher;
             }
         }
 

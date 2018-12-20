@@ -5,7 +5,7 @@ const Launcher = require('../../launcher');
 
 module.exports = {
     name: "修改ray昵称",
-    launcher: [
+    launcher: () => [
         Launcher.Mobile(UserData.ray),
         Launcher.Manage(UserData.admin)
     ],

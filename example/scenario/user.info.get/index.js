@@ -5,7 +5,7 @@ const Launcher = require('../../launcher');
 
 module.exports = {
     name: "获取用户信息",
-    launcher: Launcher.Default(UserData.skip),
+    launcher: () => Launcher.Default(UserData.skip),
     scenes: (session) => [
         {
             mode: Mode.SERIAL,

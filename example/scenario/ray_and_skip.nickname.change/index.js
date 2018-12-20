@@ -5,7 +5,7 @@ const Launcher = require('../../launcher');
 
 module.exports = {
     name: "同时修改ray&&skip昵称",
-    launcher: [
+    launcher: () => [
         Launcher.Mobile(UserData.ray),
         Launcher.Mobile(UserData.skip)
     ],

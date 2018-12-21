@@ -89,31 +89,41 @@ const Scenario = class {
                 let result = undefined;
                 switch(_.mode) {
                     case Constant.Mode.PARALLEL:
-                        result = await Promise.all(
-                            _.scenes.map(
-                                scene => this._run(
-                                    scene.method,
-                                    scene.executer != undefined ? scene.executer : this._defaultExecuter,
-                                    this._getSceneTimeout(scene),
-                                    scene.session != undefined ? scene.session : session,
-                                    scene.request != undefined ? scene.request : undefined,
-                                    (index) => record.get(index)
+                        try {
+                            result = await Promise.all(
+                                _.scenes.map(
+                                    scene => this._run(
+                                        scene.method,
+                                        scene.executer != undefined ? scene.executer : this._defaultExecuter,
+                                        this._getSceneTimeout(scene),
+                                        scene.session != undefined ? scene.session : session,
+                                        scene.request != undefined ? scene.request : undefined,
+                                        (index) => record.get(index)
+                                    )
                                 )
-                            )
-                        );
-                        if (_.response != undefined) await _.response(result.map(_ => _.response), (index) => record.get(index));
+                            );
+                            if (_.response != undefined) await _.response(result.map(_ => _.response), (index) => record.get(index), undefined);
+                        }
+                        catch(error) {
+                            if (_.response != undefined) await _.response(undefined, (index) => record.get(index), error);
+                        }
                         break;
                     case Constant.Mode.SERIAL:
                     default:
-                        result = await this._run(
-                            _.method,
-                            _.executer != undefined ? _.executer : this._defaultExecuter,
-                            this._getSceneTimeout(_),
-                            _.session != undefined ? _.session : session,
-                            _.request != undefined ? _.request : undefined,
-                            (index) => record.get(index)
-                        );
-                        if (_.response != undefined) await _.response(result.response, (index) => record.get(index));
+                        try {
+                            result = await this._run(
+                                _.method,
+                                _.executer != undefined ? _.executer : this._defaultExecuter,
+                                this._getSceneTimeout(_),
+                                _.session != undefined ? _.session : session,
+                                _.request != undefined ? _.request : undefined,
+                                (index) => record.get(index)
+                            );
+                            if (_.response != undefined) await _.response(result.response, (index) => record.get(index), undefined);
+                        }
+                        catch(error) {
+                            if (_.response != undefined) await _.response(undefined, (index) => record.get(index), error);
+                        }
                         break;
                 }
                 

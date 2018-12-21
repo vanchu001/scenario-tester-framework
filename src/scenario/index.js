@@ -87,6 +87,8 @@ const Scenario = class {
         if (this._scenes != undefined) {
             for (let _ of this._scenes(session)) {
                 let result = undefined;
+                let response = undefined;
+                let error = undefined;
                 switch(_.mode) {
                     case Constant.Mode.PARALLEL:
                         try {
@@ -102,11 +104,12 @@ const Scenario = class {
                                     )
                                 )
                             );
-                            if (_.response != undefined) await _.response(result.map(_ => _.response), (index) => record.get(index), undefined);
+                            response = result.map(_ => _.response);
                         }
-                        catch(error) {
-                            if (_.response != undefined) await _.response(undefined, (index) => record.get(index), error);
+                        catch(err) {
+                            error = err;
                         }
+                        if (_.response != undefined) await _.response(response, (index) => record.get(index), error);
                         break;
                     case Constant.Mode.SERIAL:
                     default:
@@ -119,11 +122,12 @@ const Scenario = class {
                                 _.request != undefined ? _.request : undefined,
                                 (index) => record.get(index)
                             );
-                            if (_.response != undefined) await _.response(result.response, (index) => record.get(index), undefined);
+                            response = result.response;
                         }
-                        catch(error) {
-                            if (_.response != undefined) await _.response(undefined, (index) => record.get(index), error);
+                        catch(err) {
+                            error = err;
                         }
+                        if (_.response != undefined) await _.response(response, (index) => record.get(index), error);
                         break;
                 }
                 

@@ -1,13 +1,14 @@
 const Constant = require('../constant');
 
 const Scenario = class {
-    constructor({scenes, defaultExecuter, preScenarios = undefined, launcher = undefined, session = undefined}) {
+    constructor({scenes, defaultExecuter, preScenarios = undefined, launcher = undefined, session = undefined, record = undefined}) {
         this._executer = new Map();
         this._scenes = scenes;
         this._preScenarios = preScenarios;
         this._defaultExecuter = defaultExecuter;
         this._launcher = launcher;
         this._session = session;
+        this._record = record === undefined ? new Record() : record;
     }
 
     get timeout() {
@@ -49,7 +50,7 @@ const Scenario = class {
     }
 
     async run() {
-        let record = new Record()
+        let record = this._record;
 
         //step1. 创建session
         let session = undefined;
@@ -76,7 +77,8 @@ const Scenario = class {
                     defaultExecuter: this._defaultExecuter, 
                     preScenarios: subPreScenarios,
                     undefined, 
-                    undefined
+                    undefined,
+                    record: new Record(record.get(-1))
                 });
                 let subRecord = await scenario.run();
                 record.add(subRecord.get(-1))
@@ -146,7 +148,7 @@ const Scenario = class {
             result = await new Promise(async (resolve ,reject) => {
                 setTimeout(() => reject(`method ${method} timeout`), timeout);
                 try {
-                    return resolve(await (new executer(session)).run(method, requestParams));
+                    return resolve(await (new executer(session)).run(method, requestParams, timeout));
                 }
                 catch(error) {
                     return reject(error);
@@ -169,8 +171,8 @@ const Scenario = class {
 }
 
 class Record {
-    constructor() {
-        this._dataset = [];
+    constructor(...dataset) {
+        this._dataset = dataset;
     }
 
     add(record) {

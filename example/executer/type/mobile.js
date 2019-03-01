@@ -6,7 +6,7 @@ module.exports = class extends Executer{
         this._session = session;
     }
 
-    async run(method, requestParams) {
+    async run(method, requestParams, timeout) {
         switch(method) {
             case 'user.info.get':
                 if (this._session == undefined) throw new Error('you must login first');

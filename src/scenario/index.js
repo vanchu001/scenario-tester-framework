@@ -78,7 +78,7 @@ const Scenario = class {
                     preScenarios: subPreScenarios,
                     undefined, 
                     undefined,
-                    record: new Record(record.get(-1))
+                    record: record.length === 0 ? new Record() : new Record(record.get(-1))
                 });
                 let subRecord = await scenario.run();
                 record.add(subRecord.get(-1))

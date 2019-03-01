@@ -78,7 +78,7 @@ const Scenario = class {
                     preScenarios: subPreScenarios,
                     undefined, 
                     undefined,
-                    record: record.length === 0 ? new Record() : new Record(record.get(-1))
+                    record: record.count() === 0 ? new Record() : new Record(record.get(-1))
                 });
                 let subRecord = await scenario.run();
                 record.add(subRecord.get(-1))
@@ -177,6 +177,10 @@ class Record {
 
     add(record) {
         this._dataset.push(record);
+    }
+
+    count() {
+        return this._dataset.length;
     }
 
     get(index = undefined) {
